@@ -1,0 +1,27 @@
+/* Deterministic practice content. Observations are educational, never diagnostic. */
+(function(root){
+const topics=['Meaning of ones and tens','Exchange without changing value','Keep the unit','Multiplication with exchanges','Rounding to a named place','A fresh example'];
+const days=[['Starting snapshot','check'],['Ones, tens and totals','units'],['Trade ten for one','exchange'],['Same number, new form','exchange'],['Keep the hundreds','unitcalc'],['Build equal groups','multiply'],['Midway snapshot','check'],['Trade inside multiplication','multiply'],['Carry into the next column','multiply'],['Choose the rounding place','round'],['Number-line landings','round'],['Mix and explain','mixed'],['Take it off screen','mixed'],['Fresh-number snapshot','check']];
+function make(kind,n=0){
+const pick=a=>a[n%a.length],base={kind,n};
+if(kind==='units'){const t=pick([1,5,2,4,6,3,7,8]),o=pick([9,3,7,2,4,8,1,6]),total=10*t+o,mode=n%3;
+return {...base,topic:0,total,t,o,mode,prompt:mode===0?`How many ones altogether are in ${total}?`:mode===1?`${o} ones and ${t} tens. How many ones altogether?`:`What is the ones digit in ${total}?`,answer:mode===2?o:total,unit:mode===2?'ones digit':'ones altogether',steps:[`A one is a single counter. A ten is a bundle of 10 counters.`,`${t} tens means ${t} × 10 = ${t*10} ones. Add ${o} loose ones: ${total} ones altogether.`,`The ones digit is ${o}. The total number of ones is ${total}. These are different questions.`]};}
+if(kind==='exchange'){const t=pick([1,2,3,0,7,8]),o=pick([13,24,16,25,18,27]);return {...base,topic:1,t,o,total:t*10+o,answer:t*10+o,unit:'total value',prompt:`Rebuild ${t} tens and ${o} ones using fewer than 10 in each column.`,steps:['Regroup means change the groups without changing the total.','Exchange 10 ones for 1 ten. Exchange 10 tens for 1 hundred if needed.',`${t} tens + ${o} ones = ${t*10+o}. Writing the counts beside each other changes their value.`]};}
+if(kind==='unitcalc'){let count=pick([40,23,15,32,18,26]),take=pick([1,2,3,1,4,2]),size=n%2?10:100;return {...base,topic:2,count,take,size,answer:(count-take)*size,unit:'ones (ordinary number)',prompt:`${count} ${size===100?'hundreds':'tens'} take away ${take} ${size===100?'hundreds':'tens'}. Write the answer as an ordinary number.`,steps:[`Each group is worth ${size}. Keep that label while subtracting.`,`${count} − ${take} = ${count-take} groups. These are groups of ${size}, not single ones.`,`${count-take} × ${size} = ${(count-take)*size}.` ]};}
+if(kind==='multiply'){let [a,b]=pick([[27,3],[46,2],[35,4],[217,3],[326,4],[68,3],[157,4],[238,3]]);return {...base,topic:3,a,b,answer:a*b,unit:'total',prompt:`Build ${b} equal groups of ${a}. Then exchange and solve ${a} × ${b}.`,steps:[`Multiplication means equal groups. Each group has ${Math.floor(a/100)} hundreds, ${Math.floor(a/10)%10} tens and ${a%10} ones.`,`Start with the ones. ${a%10} × ${b} = ${a%10*b} ones. Exchange complete groups of 10 ones into tens.`,`Multiply the tens, then ADD any new tens from the ones. Do the same with hundreds. The carried digit represents a real group, not an extra multiplier.`,`${a} × ${b} = ${a*b}. Draw the exchanged groups and compare them with your written columns.`]};}
+if(kind==='round'){let a=pick([3798,2463,1857,4326,2675,3514,4892,1635]),size=[10,100,1000][Math.floor(n/2)%3],lo=Math.floor(a/size)*size,hi=lo+size;return {...base,topic:4,a,size,lo,hi,answer:Math.round(a/size)*size,unit:'nearest '+({10:'ten',100:'hundred',1000:'thousand'}[size]),prompt:`Round ${a.toLocaleString('en-AU')} to the nearest ${{10:'ten',100:'hundred',1000:'thousand'}[size]}.`,steps:[`The requested place is ${size}. Only compare neighbouring multiples of ${size}.`,`${a} lies between ${lo} and ${hi}. It is ${a-lo} away from ${lo} and ${hi-a} away from ${hi}.`,`Choose the closer end. If exactly halfway, choose the higher end. The answer is ${Math.round(a/size)*size}.`]};}
+throw Error('Unknown bridge task');}
+function observation(q,value){
+if(q.kind==='units'&&q.mode!==2&&value===q.o)return 'digit-for-total';
+if(q.kind==='units'&&q.mode===2&&value===q.total)return 'total-for-digit';
+if(q.kind==='units'&&q.mode===1&&value===Number(`${q.o}${q.t}`))return 'word-order';
+if(q.kind==='exchange'&&value===Number(`${q.t}${q.o}`))return 'joined-counts';
+if(q.kind==='unitcalc'&&value===q.count-q.take)return 'unit-dropped';
+if(q.kind==='round'&&value!==q.answer&&[10,100,1000].some(s=>s!==q.size&&Math.round(q.a/s)*s===value))return 'rounding-place';
+if(q.kind==='multiply'&&Math.floor(q.a%10*q.b/10)>0&&value===q.answer-Math.floor(q.a%10*q.b/10)*10)return 'carried-ten-omitted';
+if(q.kind==='multiply')return 'multiplication-needs-review';
+return 'other-answer';}
+const labels={'carried-ten-omitted':'Answer matches omitting the tens carried from the ones','digit-for-total':'Answered with the ones digit instead of total ones','total-for-digit':'Answered with total ones instead of the ones digit','word-order':'Used word order instead of place value','joined-counts':'Joined group counts instead of combining their values','unit-dropped':'Subtracted groups but omitted their value','rounding-place':'Answer matches a different rounding place','multiplication-needs-review':'Multiplication answer needs a closer look','other-answer':'Another answer, cause unknown'};
+root.BridgeCore={make,observation,labels,days,topics};
+if(typeof module!=='undefined')module.exports=root.BridgeCore;
+})(typeof window==='undefined'?globalThis:window);
